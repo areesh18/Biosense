@@ -40,7 +40,9 @@ func main() {
 	patientRouter.Use(utils.AuthMiddleware, utils.RoleMiddleware("patient"))
 	patientRouter.HandleFunc("/dashboard", handlers.ProtectedEndpoint("patient")).Methods("GET")
 
+	handlerWithCORS := utils.CORSMiddleware(router)
 	fmt.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	if err := http.ListenAndServe(":8080", handlerWithCORS); err != nil {
+		log.Fatalf("could not start server: %v\n", err)
+	}
 }
-
