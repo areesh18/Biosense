@@ -26,7 +26,7 @@ func ConnectDB() {
 	}
 	if dbPassword == "" {
 		dbPassword = "yourpassword"
-	} 
+	}
 	if dbName == "" {
 		dbName = "roledb"
 	}
@@ -49,7 +49,7 @@ func ConnectDB() {
 	fmt.Println("Database connection successful.")
 
 	// Auto-migrate the schema
-	err = DB.AutoMigrate(&models.User{})
+	err = DB.AutoMigrate(&models.User{}, &models.Alert{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}

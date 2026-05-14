@@ -1,391 +1,257 @@
-import React, { useState } from 'react';
-import { ChevronDown, Heart, Thermometer, Activity, AlertTriangle, Eye, Zap, Droplets, Wind } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { Heart, Thermometer, Activity, AlertTriangle, Wind, Wifi, WifiOff, Bell } from 'lucide-react';
+import useStream from '../../hooks/useStream';
 
-const DoctorDashboard = () => {
-  const [selectedPatient, setSelectedPatient] = useState('john-doe');
+const severityColor = (severity) => {
+  switch (severity) {
+    case 'HIGH': return 'bg-red-100 border-red-500 text-red-700';
+    case 'MEDIUM': return 'bg-yellow-100 border-yellow-500 text-yellow-700';
+    case 'LOW': return 'bg-blue-100 border-blue-500 text-blue-700';
+    default: return 'bg-gray-100 border-gray-400 text-gray-700';
+  }
+};
 
-  const patients = {
-    'john-doe': {
-      name: 'John Doe',
-      id: 'P001',
-      age: 68,
-      room: '102A',
-      condition: 'Post-Surgery Recovery',
-      status: 'Stable',
-      vitals: {
-        heartRate: 78,
-        bloodPressure: '125/80',
-        temperature: 98.6,
-        spo2: 97,
-        respiratoryRate: 16,
-        bloodSugar: 110
-      },
-      alerts: [
-        { type: 'warning', message: 'Heart rate slightly elevated', time: '2 hours ago' },
-        { type: 'info', message: 'Medication administered', time: '4 hours ago' }
-      ],
-      fallDetection: {
-        status: 'Normal',
-        lastIncident: 'None in 30 days',
-        riskLevel: 'Low'
-      }
-    },
-    'jane-smith': {
-      name: 'Jane Smith',
-      id: 'P002',
-      age: 45,
-      room: '205B',
-      condition: 'Diabetes Management',
-      status: 'Monitoring',
-      vitals: {
-        heartRate: 72,
-        bloodPressure: '118/75',
-        temperature: 99.1,
-        spo2: 98,
-        respiratoryRate: 14,
-        bloodSugar: 145
-      },
-      alerts: [
-        { type: 'warning', message: 'Blood sugar elevated', time: '30 minutes ago' },
-        { type: 'success', message: 'Vital signs stable', time: '1 hour ago' }
-      ],
-      fallDetection: {
-        status: 'Normal',
-        lastIncident: 'None',
-        riskLevel: 'Low'
-      }
-    },
-    'robert-wilson': {
-      name: 'Robert Wilson',
-      id: 'P003',
-      age: 72,
-      room: '301C',
-      condition: 'Cardiac Monitoring',
-      status: 'Critical',
-      vitals: {
-        heartRate: 95,
-        bloodPressure: '145/92',
-        temperature: 100.2,
-        spo2: 94,
-        respiratoryRate: 22,
-        bloodSugar: 98
-      },
-      alerts: [
-        { type: 'danger', message: 'SpO2 below normal range', time: '15 minutes ago' },
-        { type: 'warning', message: 'Blood pressure elevated', time: '45 minutes ago' }
-      ],
-      fallDetection: {
-        status: 'High Risk',
-        lastIncident: '3 days ago',
-        riskLevel: 'High'
-      }
+const severityBadge = (severity) => {
+  switch (severity) {
+    case 'HIGH': return 'bg-red-500 text-white';
+    case 'MEDIUM': return 'bg-yellow-500 text-white';
+    case 'LOW': return 'bg-blue-500 text-white';
+    default: return 'bg-gray-400 text-white';
+  }
+};
+
+const VitalCard = ({ icon, label, value, unit, normal }) => (
+  <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="flex items-center justify-between mb-2">
+      {icon}
+      <span className="text-2xl font-bold text-gray-900">{value ?? '--'}</span>
+    </div>
+    <p className="text-gray-600 text-sm">{label}</p>
+    <p className="text-xs text-gray-400 mt-1">{unit} · {normal}</p>
+  </div>
+);
+
+export default function DoctorDashboard() {
+  const { vitals, sensing, alerts, connected } = useStream();
+  const [selectedId, setSelectedId] = useState(null);
+  const [activeAlerts, setActiveAlerts] = useState([]);
+  const [dismissed, setDismissed] = useState(false);
+
+  // accumulate all fall alerts, don't replace
+  useEffect(() => {
+    if (sensing?.fall_detected) {
+      setActiveAlerts(prev => {
+        // avoid exact duplicates in same second
+        const alreadyExists = prev.some(
+          a => a.severity === sensing.severity && a.spike_count === sensing.spike_count
+        );
+        if (alreadyExists) return prev;
+        return [{ ...sensing, time: new Date().toLocaleTimeString() }, ...prev].slice(0, 20);
+      });
+      setDismissed(false);
     }
-  };
+  }, [sensing]);
 
-  const heartRateData = [
-    { time: '00:00', value: 72 },
-    { time: '04:00', value: 68 },
-    { time: '08:00', value: 75 },
-    { time: '12:00', value: 78 },
-    { time: '16:00', value: 82 },
-    { time: '20:00', value: 76 },
-    { time: '24:00', value: 74 }
-  ];
-
-  const spo2Data = [
-    { time: '00:00', value: 98 },
-    { time: '04:00', value: 97 },
-    { time: '08:00', value: 98 },
-    { time: '12:00', value: 97 },
-    { time: '16:00', value: 96 },
-    { time: '20:00', value: 97 },
-    { time: '24:00', value: 97 }
-  ];
-
-  const temperatureData = [
-    { time: '00:00', value: 98.4 },
-    { time: '04:00', value: 98.2 },
-    { time: '08:00', value: 98.6 },
-    { time: '12:00', value: 98.8 },
-    { time: '16:00', value: 99.1 },
-    { time: '20:00', value: 98.9 },
-    { time: '24:00', value: 98.6 }
-  ];
-
-  const bloodPressureData = [
-    { time: '00:00', systolic: 120, diastolic: 78 },
-    { time: '06:00', systolic: 118, diastolic: 75 },
-    { time: '12:00', systolic: 125, diastolic: 80 },
-    { time: '18:00', systolic: 128, diastolic: 82 },
-    { time: '24:00', systolic: 122, diastolic: 79 }
-  ];
-
-  const activityData = [
-    { name: 'Sleep', value: 8, color: '#3B82F6' },
-    { name: 'Active', value: 6, color: '#10B981' },
-    { name: 'Rest', value: 10, color: '#F59E0B' }
-  ];
-
-  const currentPatient = patients[selectedPatient];
-
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'stable': return 'text-green-600 bg-green-100';
-      case 'monitoring': return 'text-yellow-600 bg-yellow-100';
-      case 'critical': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getAlertColor = (type) => {
-    switch (type) {
-      case 'danger': return 'border-red-500 bg-red-50 text-red-700';
-      case 'warning': return 'border-yellow-500 bg-yellow-50 text-yellow-700';
-      case 'success': return 'border-green-500 bg-green-50 text-green-700';
-      default: return 'border-blue-500 bg-blue-50 text-blue-700';
-    }
-  };
-
-  const getRiskColor = (level) => {
-    switch (level.toLowerCase()) {
-      case 'low': return 'text-green-600 bg-green-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'high': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
+  const selectedPatient = vitals.find(v => v.patient_id === selectedId) || vitals[0];
+  const hasActiveAlerts = activeAlerts.length > 0 && !dismissed;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Patient Health Dashboard</h1>
-            <p className="text-gray-600">Real-time patient monitoring and health analytics</p>
-          </div>
-          
-          <div className="relative">
-            <select
-              value={selectedPatient}
-              onChange={(e) => setSelectedPatient(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {Object.entries(patients).map(([key, patient]) => (
-                <option key={key} value={key}>
-                  {patient.name} - {patient.id}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
-          </div>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{currentPatient.name}</h3>
-            <p className="text-gray-600">ID: {currentPatient.id}</p>
-            <p className="text-gray-600">Age: {currentPatient.age}</p>
-            <p className="text-gray-600">Room: {currentPatient.room}</p>
-          </div>
-          <div>
-            <p className="text-gray-600 mb-1">Condition</p>
-            <p className="font-medium text-gray-900">{currentPatient.condition}</p>
-          </div>
-          <div>
-            <p className="text-gray-600 mb-1">Status</p>
-            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentPatient.status)}`}>
-              {currentPatient.status}
-            </span>
-          </div>
-          <div>
-            <p className="text-gray-600 mb-1">Fall Risk</p>
-            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getRiskColor(currentPatient.fallDetection.riskLevel)}`}>
-              {currentPatient.fallDetection.riskLevel} Risk
-            </span>
-          </div>
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Doctor Dashboard</h1>
+          <p className="text-gray-500 text-sm mt-1">Live patient monitoring via ISAC sensing</p>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Heart className="h-8 w-8 text-red-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.heartRate}</span>
-          </div>
-          <p className="text-gray-600 text-sm">Heart Rate (BPM)</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: 60-100</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Activity className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.bloodPressure}</span>
-          </div>
-          <p className="text-gray-600 text-sm">Blood Pressure</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: &lt;120/80</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Thermometer className="h-8 w-8 text-orange-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.temperature}°F</span>
-          </div>
-          <p className="text-gray-600 text-sm">Temperature</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: 97.8-99.1°F</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Eye className="h-8 w-8 text-green-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.spo2}%</span>
-          </div>
-          <p className="text-gray-600 text-sm">SpO2</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: &gt;95%</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Wind className="h-8 w-8 text-purple-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.respiratoryRate}</span>
-          </div>
-          <p className="text-gray-600 text-sm">Respiratory Rate</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: 12-20/min</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Droplets className="h-8 w-8 text-indigo-500" />
-            <span className="text-2xl font-bold text-gray-900">{currentPatient.vitals.bloodSugar}</span>
-          </div>
-          <p className="text-gray-600 text-sm">Blood Sugar</p>
-          <p className="text-xs text-gray-500 mt-1">Normal: 70-140 mg/dL</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Heart Rate Trend (24h)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={heartRateData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#EF4444" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">SpO2 Levels (24h)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={spo2Data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis domain={[90, 100]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Temperature Monitoring (24h)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={temperatureData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis domain={[97, 101]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#F59E0B" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Blood Pressure Readings</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={bloodPressureData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="systolic" fill="#3B82F6" name="Systolic" />
-              <Bar dataKey="diastolic" fill="#93C5FD" name="Diastolic" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
-            Fall Detection
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-gray-600 text-sm">Current Status</p>
-              <p className="font-medium text-gray-900">{currentPatient.fallDetection.status}</p>
+        <div className="flex items-center gap-4">
+          {/* alert count badge */}
+          {activeAlerts.length > 0 && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 px-3 py-1 rounded-full">
+              <Bell className="w-4 h-4 text-red-500" />
+              <span className="text-red-600 text-sm font-medium">{activeAlerts.length} fall events</span>
             </div>
-            <div>
-              <p className="text-gray-600 text-sm">Last Incident</p>
-              <p className="font-medium text-gray-900">{currentPatient.fallDetection.lastIncident}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Risk Level</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getRiskColor(currentPatient.fallDetection.riskLevel)}`}>
-                {currentPatient.fallDetection.riskLevel}
+          )}
+          {connected
+            ? <><Wifi className="text-green-500 w-5 h-5" /><span className="text-green-600 text-sm font-medium">Live</span></>
+            : <><WifiOff className="text-red-400 w-5 h-5" /><span className="text-red-500 text-sm">Disconnected</span></>
+          }
+        </div>
+      </div>
+
+      {/* Active Fall Alerts Panel */}
+      {hasActiveAlerts && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="text-red-600 w-5 h-5" />
+              <span className="font-semibold text-red-700">
+                {activeAlerts.length} Fall Event{activeAlerts.length > 1 ? 's' : ''} Detected This Session
               </span>
             </div>
+            <button
+              onClick={() => setDismissed(true)}
+              className="text-red-400 hover:text-red-600 text-sm underline"
+            >
+              Dismiss all
+            </button>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Activity (Hours)</h3>
-          <ResponsiveContainer width="100%" height={150}>
-            <PieChart>
-              <Pie
-                data={activityData}
-                cx="50%"
-                cy="50%"
-                outerRadius={60}
-                dataKey="value"
-              >
-                {activityData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value, name) => [`${value}h`, name]} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 space-y-2">
-            {activityData.map((item, index) => (
-              <div key={index} className="flex items-center">
-                <div className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: item.color}}></div>
-                <span className="text-sm text-gray-600">{item.name}: {item.value}h</span>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {activeAlerts.map((a, i) => (
+              <div key={i} className="flex items-center justify-between bg-white border border-red-100 rounded p-2">
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${severityBadge(a.severity)}`}>
+                    {a.severity}
+                  </span>
+                  <span className="text-sm text-gray-700">
+                    Confidence: {(a.confidence * 100).toFixed(0)}% · Spikes: {a.spike_count}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-400">{a.time}</span>
               </div>
             ))}
           </div>
         </div>
+      )}
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h3>
-          <div className="space-y-3">
-            {currentPatient.alerts.map((alert, index) => (
-              <div key={index} className={`border-l-4 p-3 rounded ${getAlertColor(alert.type)}`}>
-                <p className="text-sm font-medium">{alert.message}</p>
-                <p className="text-xs opacity-75 mt-1">{alert.time}</p>
+      {/* two column layout below */}
+      <div className="flex gap-6">
+
+        {/* LEFT — patient vitals */}
+        <div className="flex-1 min-w-0">
+
+          {/* Patient Selector */}
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <p className="text-sm text-gray-500 mb-3">Select Patient</p>
+            <div className="flex flex-wrap gap-2">
+              {vitals.map(v => (
+                <button
+                  key={v.patient_id}
+                  onClick={() => setSelectedId(v.patient_id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition
+                    ${(selectedId === v.patient_id || (!selectedId && vitals[0]?.patient_id === v.patient_id))
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                    }`}
+                >
+                  {v.patient_id}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Patient Vitals */}
+          {selectedPatient && (
+            <>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <VitalCard
+                  icon={<Heart className="w-8 h-8 text-red-500" />}
+                  label="Heart Rate"
+                  value={selectedPatient.heart_rate_bpm}
+                  unit="BPM"
+                  normal="Normal: 60-100"
+                />
+                <VitalCard
+                  icon={<Activity className="w-8 h-8 text-green-500" />}
+                  label="SpO2"
+                  value={selectedPatient.spo2_percent}
+                  unit="%"
+                  normal="Normal: >95%"
+                />
+                <VitalCard
+                  icon={<Thermometer className="w-8 h-8 text-orange-500" />}
+                  label="Temperature"
+                  value={selectedPatient.temperature_c}
+                  unit="°C"
+                  normal="Normal: 36.1-37.2"
+                />
+                <VitalCard
+                  icon={<Wind className="w-8 h-8 text-purple-500" />}
+                  label="Respiration"
+                  value={selectedPatient.respiration_rate_bpm}
+                  unit="breaths/min"
+                  normal="Normal: 12-20"
+                />
               </div>
-            ))}
+
+              <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex gap-6 text-sm text-gray-600">
+                <span>Patient ID: <strong className="text-gray-900">{selectedPatient.patient_id}</strong></span>
+                <span>Distance: <strong className="text-gray-900">{selectedPatient.distance_m} m</strong></span>
+                <span>Last update: <strong className="text-gray-900">{new Date(selectedPatient.timestamp).toLocaleTimeString()}</strong></span>
+              </div>
+            </>
+          )}
+
+          {/* All Patients Table */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">All Patients Overview</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 border-b">
+                    <th className="pb-3">Patient</th>
+                    <th className="pb-3">Heart Rate</th>
+                    <th className="pb-3">SpO2</th>
+                    <th className="pb-3">Temp (°C)</th>
+                    <th className="pb-3">Respiration</th>
+                    <th className="pb-3">Distance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vitals.map(v => (
+                    <tr
+                      key={v.patient_id}
+                      onClick={() => setSelectedId(v.patient_id)}
+                      className="border-b hover:bg-gray-50 cursor-pointer"
+                    >
+                      <td className="py-3 font-medium text-gray-900">{v.patient_id}</td>
+                      <td className="py-3">{v.heart_rate_bpm} BPM</td>
+                      <td className="py-3">{v.spo2_percent}%</td>
+                      <td className="py-3">{v.temperature_c}°C</td>
+                      <td className="py-3">{v.respiration_rate_bpm}/min</td>
+                      <td className="py-3">{v.distance_m} m</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        {/* RIGHT — live alerts feed */}
+        <div className="w-80 flex-shrink-0">
+          <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Live Alerts Feed
+              <span className="ml-2 text-sm font-normal text-gray-400">({alerts.length})</span>
+            </h2>
+            {alerts.length === 0
+              ? <p className="text-gray-400 text-sm">No alerts yet this session.</p>
+              : (
+                <div className="space-y-3 max-h-screen overflow-y-auto">
+                  {alerts.map((a, i) => (
+                    <div key={i} className={`border-l-4 p-3 rounded ${severityColor(a.severity)}`}>
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-sm">{a.patient_id}</p>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${severityBadge(a.severity)}`}>
+                          {a.severity}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-1">
+                        Confidence: {(a.confidence * 100).toFixed(0)}%
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(a.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+        </div>
+
       </div>
     </div>
   );
-};
-
-export default DoctorDashboard;
+}
