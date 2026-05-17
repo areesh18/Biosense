@@ -22,11 +22,20 @@ type VitalSign struct {
 }
 
 type SensingData struct {
-	FallDetected bool    `json:"fall_detected"`
-	Severity     string  `json:"severity"`
-	Confidence   float64 `json:"confidence"`
-	SpikeCount   int     `json:"spike_count"`
-	Peak         float64 `json:"peak"`
+	FallDetected               bool    `json:"fall_detected"`
+	Severity                   string  `json:"severity"`
+	Confidence                 float64 `json:"confidence"`
+	Basis                      string  `json:"basis"`
+	SpikeCount                 int     `json:"spike_count"`
+	Peak                       float64 `json:"peak"`
+	RadarEventFrames           int     `json:"radar_event_frames"`
+	RadarMaxSnrDb              float64 `json:"radar_max_snr_db"`
+	RadarRangeMigrationM       float64 `json:"radar_range_migration_m"`
+	RadarEstimatedVelocityMps  float64 `json:"radar_estimated_velocity_mps"`
+	RadarTrackStable           bool    `json:"radar_track_stable"`
+	RadarTrackLost             bool    `json:"radar_track_lost"`
+	RadarTrackRangeM           float64 `json:"radar_track_range_m"`
+	RadarTrackLossFrames       int     `json:"radar_track_loss_frames"`
 }
 
 type StreamFrame struct {
@@ -37,7 +46,6 @@ type StreamFrame struct {
 	Alerts          []AlertPayload `json:"alerts"`
 	FallProbability float64       `json:"fall_probability"`
 }
-
 type AlertPayload struct {
 	PatientID       string  `json:"patient_id"`
 	Alert           string  `json:"alert"`
@@ -45,6 +53,7 @@ type AlertPayload struct {
 	Confidence      float64 `json:"confidence"`
 	Timestamp       string  `json:"timestamp"`
 	FallProbability float64 `json:"fall_probability"`
+	Reason          string  `json:"reason"`
 }
 
 func handleVitals(client mqtt.Client, msg mqtt.Message) {
