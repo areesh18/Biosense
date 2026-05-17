@@ -172,7 +172,7 @@ def start_stream():
     payload = request.get_json(silent=True) or {}
     interval_seconds = float(payload.get("interval_seconds", 1.0))
     num_bits = int(payload.get("num_bits", 256))
-    publish_mqtt = bool(payload.get("publish_mqtt", False))
+    publish_mqtt = bool(payload.get("publish_mqtt", True))
     fall_probability = payload.get("fall_probability")
     if fall_probability is not None:
         fall_probability = float(fall_probability)
