@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, ShieldAlert, Activity, Users, RefreshCw, Play, Square } from 'lucide-react';
-
+import Navbar from '../../components/Navbar.jsx';
 const severityColor = (severity) => {
   switch (severity) {
     case 'HIGH': return 'bg-red-100 border-red-500 text-red-700';
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-
+      <Navbar role="admin" />
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex items-center justify-between">
         <div>

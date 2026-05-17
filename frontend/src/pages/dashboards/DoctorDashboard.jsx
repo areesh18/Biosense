@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Thermometer, Activity, AlertTriangle, Wind, Wifi, WifiOff, Bell } from 'lucide-react';
 import useStream from '../../hooks/useStream';
-
+import Navbar from '../../components/Navbar.jsx';
 const severityColor = (severity) => {
   switch (severity) {
     case 'HIGH': return 'bg-red-100 border-red-500 text-red-700';
@@ -57,7 +57,7 @@ export default function DoctorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-
+      <Navbar role="doctor" />
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex items-center justify-between">
         <div>

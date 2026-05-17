@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, Thermometer, Activity, Wind, Wifi, WifiOff } from 'lucide-react';
 import useStream from '../../hooks/useStream';
-
+import Navbar from '../../components/Navbar.jsx';
 const VitalCard = ({ icon, label, value, unit, normal, normalRange }) => {
   const isAbnormal = normalRange && value !== null && (value < normalRange[0] || value > normalRange[1]);
 
@@ -32,7 +32,7 @@ export default function PatientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-
+      <Navbar role="patient" />
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex items-center justify-between">
         <div>
