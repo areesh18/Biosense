@@ -53,7 +53,7 @@ export default function DoctorDashboard() {
   }, [sensing]);
 
   const selectedPatient = vitals.find(v => v.patient_id === selectedId) || vitals[0];
-  const hasActiveAlerts = activeAlerts.length > 0 && !dismissed;
+ 
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -80,39 +80,7 @@ export default function DoctorDashboard() {
       </div>
 
       {/* Active Fall Alerts Panel */}
-      {hasActiveAlerts && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="text-red-600 w-5 h-5" />
-              <span className="font-semibold text-red-700">
-                {activeAlerts.length} Fall Event{activeAlerts.length > 1 ? 's' : ''} Detected This Session
-              </span>
-            </div>
-            <button
-              onClick={() => setDismissed(true)}
-              className="text-red-400 hover:text-red-600 text-sm underline"
-            >
-              Dismiss all
-            </button>
-          </div>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {activeAlerts.map((a, i) => (
-              <div key={i} className="flex items-center justify-between bg-white border border-red-100 rounded p-2">
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${severityBadge(a.severity)}`}>
-                    {a.severity}
-                  </span>
-                  <span className="text-sm text-gray-700">
-                    Confidence: {(a.confidence * 100).toFixed(0)}% · Spikes: {a.spike_count}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-400">{a.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
 
       {/* two column layout below */}
       <div className="flex gap-6">
@@ -176,7 +144,7 @@ export default function DoctorDashboard() {
 
               <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex gap-6 text-sm text-gray-600">
                 <span>Patient ID: <strong className="text-gray-900">{selectedPatient.patient_id}</strong></span>
-                <span>Distance: <strong className="text-gray-900">{selectedPatient.distance_m} m</strong></span>
+                
                 <span>Last update: <strong className="text-gray-900">{new Date(selectedPatient.timestamp).toLocaleTimeString()}</strong></span>
               </div>
             </>
@@ -194,7 +162,7 @@ export default function DoctorDashboard() {
                     <th className="pb-3">SpO2</th>
                     <th className="pb-3">Temp (°C)</th>
                     <th className="pb-3">Respiration</th>
-                    <th className="pb-3">Distance</th>
+                    
                   </tr>
                 </thead>
                 <tbody>
@@ -209,7 +177,7 @@ export default function DoctorDashboard() {
                       <td className="py-3">{v.spo2_percent}%</td>
                       <td className="py-3">{v.temperature_c}°C</td>
                       <td className="py-3">{v.respiration_rate_bpm}/min</td>
-                      <td className="py-3">{v.distance_m} m</td>
+                      
                     </tr>
                   ))}
                 </tbody>
