@@ -263,9 +263,7 @@ export default function DoctorDashboard() {
                     <p className="text-xs mt-1">
                       Confidence: {(a.confidence * 100).toFixed(0)}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Method: {a.reason || "ISAC sensing"}
-                    </p>
+                    
                     <p className="text-xs text-gray-400 mt-0.5">
                       {new Date(a.timestamp).toLocaleTimeString()}
                     </p>
