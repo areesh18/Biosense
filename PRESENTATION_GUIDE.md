@@ -1,18 +1,35 @@
 # BioSense Presentation Guide
 
-## One-Line Project Pitch
+## Core Pitch
 
-BioSense is an ISAC-enabled IoMT healthcare prototype that uses the same wireless signal for patient communication and sensing, processes it at the edge using NOMA and SIC, detects fall-like events from residual/radar features, and streams live vitals and alerts to role-based hospital dashboards.
+BioSense is an ISAC-enabled IoMT healthcare prototype that combines shared-waveform communication and sensing, edge fall detection, privacy-aware federated intelligence, and a role-based hospital dashboard workflow.
 
-## How To Open The Presentation
+Say it in one sentence:
 
-Start with the problem, not the technology:
+"BioSense reuses the same simulated wireless signal for patient communication and fall sensing, processes it at the edge using NOMA, SIC, residual/radar analysis, and FedSense-style privacy-aware learning, then streams vitals and alerts into secure admin, doctor, and patient dashboards."
 
-"Continuous patient monitoring is becoming common, but most systems treat sensing, communication, analytics, and privacy as separate problems. That creates latency, fragmented decisions, and more risk around patient data. BioSense addresses this by combining Integrated Sensing and Communication, edge analytics, and a secure hospital application workflow."
+## Important Framing
 
-Then give the codebase reality:
+Use this framing consistently:
 
-"In our current implementation, we have a working software prototype for ISAC/NOMA simulation, fall sensing, MQTT streaming, backend alert handling, authentication, and React dashboards. Federated learning and homomorphic encryption are part of the proposed architecture and future privacy layer."
+- The current visible codebase implements the ISAC/NOMA simulation, edge fall detection, Flask control API, MQTT stream, Go backend, PostgreSQL alert persistence, WebSocket broadcasting, and React dashboards.
+- The attached report describes the Federated Learning module as a true project component: Flower-based FL with three decentralized clients, non-IID partitions, FedAvg/FedSense aggregation, model saving, prediction, and simulated privacy helpers.
+- Homomorphic Encryption is part of the privacy/security direction described in the report. The report also states that the current simulated encryption is not production-grade HE and should later be replaced with verified secure aggregation or real homomorphic encryption.
+- Do not present the system as medically validated or diagnosis-ready.
+
+Best phrasing:
+
+"The main application path is implemented end to end in the checked codebase. The FL module is presented in the project report as a separate demonstrated privacy-learning component, and HE is treated as the cryptographic privacy direction, with production-grade HE listed as future hardening."
+
+## Opening Script
+
+Start with the problem:
+
+"Continuous healthcare monitoring needs low latency, privacy, and role-specific access. Traditional IoMT systems often separate sensing, communication, storage, analytics, and visualization into different silos. That adds delay, duplicates infrastructure, and makes it harder to trace a critical event from patient signal to clinical alert."
+
+Then introduce BioSense:
+
+"BioSense addresses this by joining three ideas: ISAC for shared sensing and communication, edge intelligence for fast fall detection, and privacy-aware learning through federated training. The result is an end-to-end software prototype where simulated patient signals become live vitals and fall alerts on hospital dashboards."
 
 ## Slide-By-Slide Talk Track
 
@@ -20,184 +37,231 @@ Then give the codebase reality:
 
 Say:
 
-"Our project is BioSense: ISAC-enabled IoMT for smart and secure health monitoring. The key idea is that medical IoT devices should not only transmit vitals, but also use the communication signal itself for sensing events like falls."
+"Our project is BioSense: ISAC-enabled IoMT for smart and secure healthcare. The key idea is that a medical IoT signal should not only carry patient data, but can also provide sensing evidence for events such as falls."
 
 Emphasize:
 
 - ISAC means Integrated Sensing and Communication.
 - IoMT means Internet of Medical Things.
-- The project is healthcare-focused: patient vitals, emergency detection, hospital dashboards.
+- The project combines signal processing, privacy-aware learning, backend services, and healthcare dashboards.
 
 ### Slide 2: Objectives
 
 Say:
 
-"We designed BioSense around four objectives: real-time health monitoring, adaptive anomaly detection, synchronized hospital architecture, and privacy-preserving intelligence."
+"BioSense has four objectives: real-time health monitoring, fall-event sensing, secure role-based hospital workflow, and privacy-aware intelligence."
 
-Connect to implementation:
+Map objectives to the project:
 
-- Real-time monitoring is represented by simulated patient vitals and WebSocket dashboards.
-- Anomaly detection is implemented as fall detection using residual signal and radar track-loss analysis.
-- Synchronized architecture is implemented through Python simulation, MQTT, Go backend, PostgreSQL, and React dashboards.
-- Privacy preservation is an architectural target through FL/HE, not fully implemented in this prototype.
+- Real-time monitoring: simulated patient vitals, MQTT, WebSocket, React dashboards.
+- Fall detection: residual/radar analysis and radar track-loss detection.
+- Secure workflow: JWT login, bcrypt password hashing, role-protected Go routes, PostgreSQL alert storage.
+- Privacy-aware intelligence: Flower-based FL demo with FedAvg/FedSense concepts and HE/secure aggregation as the privacy-hardening path.
 
 ### Slide 3: Problem Definition
 
 Say:
 
-"The problem is that conventional IoMT systems often collect vitals but analyze them in separated layers. That increases delay and makes urgent decisions harder. Also, sending raw medical data to a central server creates privacy concerns."
+"The project addresses the lack of a compact prototype that connects patient signal generation, shared communication/sensing, fall detection, persistent alerts, and role-specific dashboards in one workflow."
 
 Then:
 
-"BioSense's solution is to move intelligence closer to the patient. The edge node receives a mixed communication/sensing signal, separates patient data using NOMA-SIC, analyzes leftover sensing information, and raises alerts quickly."
+"A conventional design might use separate sensing hardware, separate communication channels, centralized analytics, and isolated dashboards. BioSense instead moves the first decision loop closer to the patient and forwards compact, actionable information to the hospital system."
 
 ### Slide 4: Literature Review
 
 Say:
 
-"Our literature review led to two main directions. First, federated learning and homomorphic encryption support privacy-preserving medical intelligence. Second, NOMA-ISAC research supports the technical idea of serving communication and sensing simultaneously."
+"The literature points to three needs. ISAC improves spectrum and hardware efficiency by sharing waveform resources. Edge IoMT reduces latency and bandwidth use. Federated Learning and encryption-based privacy mechanisms reduce the need to centralize sensitive patient data."
 
 Keep it crisp:
 
-- NOMA helps support multiple users on the same resource block.
-- SIC is necessary to decode overlapping signals.
-- FL helps train without sharing raw patient data.
-- HE protects model updates, but adds computation overhead.
+- NOMA supports multiple patients on the same time/frequency resource.
+- SIC separates overlapped patient signals.
+- ISAC reuses the communication waveform for sensing.
+- FL trains models across clients without sharing raw data.
+- HE or secure aggregation protects model updates, but real production-grade HE adds computational cost.
 
-Judge-safe distinction:
-
-"Our current prototype focuses on the NOMA-ISAC and hospital application pipeline. The FL and HE layer is proposed as the next privacy-preserving extension."
-
-### Slide 5: Layered Architecture
-
-Use this as your main structure slide.
+### Slide 5: Architecture
 
 Say:
 
-"BioSense is organized into five layers."
+"BioSense is easiest to explain as five connected layers."
 
 Layer mapping:
 
-1. ISAC-IoMT Sensor Layer: simulated patients and signal generation in `python/core/patients` and `python/simulation`.
-2. Edge/Local Processing Layer: NOMA-SIC, residual analysis, radar processing, and fall detection in `python/core`.
-3. Federated Learning Layer: proposed privacy-preserving learning layer from the PPT architecture.
-4. Backend Service Layer: Go backend with authentication, MQTT subscriber, WebSocket broadcast, PostgreSQL alert persistence.
-5. Web Application Layer: React dashboards for admin, doctor, and patient.
+1. ISAC-IoMT sensor layer: simulated patients, bits, vitals, channel gain, and waveform generation in `python/core/patients` and `python/simulation`.
+2. Edge processing layer: NOMA, Rayleigh fading, AWGN, weak-first SIC, residual analysis, radar processing, and fall detection in `python/core`.
+3. Federated intelligence layer: report-described FL module using Flower, three clients, non-IID partitions, FedAvg/FedSense aggregation, confidence scoring, and simulated privacy helpers.
+4. Backend service layer: Go backend with authentication, MQTT ingestion, PostgreSQL alert persistence, and WebSocket broadcast.
+5. Web application layer: React dashboards for admin, doctor, and patient workflows.
 
 Strong explanation:
 
-"The important workflow is bottom-up: sensor data becomes a wireless signal, the edge extracts communication and sensing features, backend services distribute events, and dashboards make those events actionable."
+"The workflow is bottom-up: signal generation creates communication and sensing evidence, edge processing converts it into decisions, FL supports privacy-aware learning, backend services persist and broadcast events, and dashboards turn events into clinical actions."
 
-### Slide 6: Workflow Diagram And Algorithms
+### Slide 6: Workflow And Algorithms
 
-Explain the actual implemented workflow:
+Explain the implemented ISAC workflow:
 
-1. Patient objects generate bits and vitals.
-2. Power allocation assigns more power to the weaker/farther user.
+1. Patient objects generate random bits and BPSK-style symbols.
+2. Power allocation gives more power to the weaker/farther patient.
 3. NOMA superposes strong and weak patient signals.
-4. Rayleigh channels and AWGN simulate wireless behavior.
-5. Radar echo is injected to represent sensing evidence during a fall.
-6. Edge node applies weak-first SIC to recover patient data.
-7. Residual and radar processors analyze what remains after cancellation.
-8. Fall detector decides severity and confidence.
-9. Alerts are published through MQTT and shown in dashboards.
+4. Rayleigh fading and AWGN simulate wireless channel behavior.
+5. Radar echo is injected into the shared waveform for sensing evidence.
+6. Weak-first SIC recovers communication bits and leaves a residual.
+7. Residual and matched-filter radar processing extract sensing features.
+8. Fall detector checks stable radar track followed by track loss.
+9. Alerts and vitals are published through MQTT and displayed in dashboards.
+
+Explain the report-described FL workflow:
+
+1. Server initializes a global model.
+2. Three hospital clients receive model parameters.
+3. Each client trains locally on its own non-IID data partition.
+4. Clients return model updates, sample counts, and reliability values.
+5. FedAvg/FedSense aggregates updates without sharing raw datasets.
+6. Confidence scoring supports sensing-aware reliability and alert severity.
 
 Key algorithm names:
 
-- NOMA: non-orthogonal multiple access for multi-patient communication.
-- SIC: successive interference cancellation to decode overlapping signals.
-- Matched-filter radar processing: estimates range/SNR from the residual signal.
-- Track-loss fall detection: detects loss of a stable radar track after movement.
-- FedSense/FedAvg: proposed FL direction for future decentralized learning.
+- NOMA: multi-user communication over shared resources.
+- SIC: receiver-side separation of overlapping signals.
+- Matched-filter radar processing: estimates range and SNR from residual evidence.
+- Radar track-loss detection: detects a fall-like event when a stable track disappears.
+- FedAvg: baseline federated averaging.
+- FedSense: sensing-aware FL aggregation using data quality, sensing reliability, and communication quality.
+- Sigmoid confidence calibration: maps raw anomaly evidence to low, medium, or high risk.
 
 ### Slide 7: Methodology And Tech Stack
 
 Say:
 
-"Our development follows a five-phase pipeline: acquisition, edge processing, model training as the proposed privacy layer, backend integration, and visualization."
+"The methodology follows acquisition, edge processing, federated learning, backend integration, and visualization."
 
-Codebase tech stack:
+Current codebase tech stack:
 
-- Python: signal simulation, ISAC/NOMA, radar processing, stream generation, Flask APIs.
-- Flask: simulation control endpoints on port 5000.
-- MQTT: topics for vitals, residual sensing, and alerts.
-- Go: backend service, role-based auth, JWT, GORM, PostgreSQL, WebSocket stream.
-- React and Tailwind: live dashboards.
-- PostgreSQL: stores users and fall alerts.
+- Python: ISAC/NOMA simulation, radar processing, fall detection, vitals stream, Monte Carlo metrics.
+- Flask: simulation and stream control API on port 5000.
+- MQTT: vitals, residual/sensing, and alert topics.
+- Go: backend API, JWT auth, role middleware, MQTT subscriber, WebSocket hub, PostgreSQL persistence.
+- React/Vite/Tailwind: role-based dashboards.
+- PostgreSQL: users and fall alerts.
 
-Important:
+Report-described privacy stack:
 
-"The present demo is software-simulated. ESP32, Raspberry Pi, and SDR hardware are future deployment targets."
+- Flower: federated server and clients.
+- FedAvg/FedSense: model aggregation.
+- Simulated privacy helpers/encryption: demonstration-level privacy protection.
+- Homomorphic Encryption/secure aggregation: future production-grade privacy hardening.
+
+Hardware note:
+
+"The present sensing and vitals are software-simulated. ESP32, Raspberry Pi, Jetson Nano, and SDR-style hardware are future deployment targets."
 
 ### Slide 8: Experimental Details
 
 Say:
 
-"For the implemented experiment, we simulate a multi-patient hospital environment. The Python layer creates patients at different distances, generates communication bits, applies NOMA transmission, injects radar echo for fall events, and evaluates communication and sensing outcomes."
+"For the ISAC experiment, we simulate a two-user NOMA environment, assign patients at different distances, generate bits, transmit through channel and noise, inject radar echo for fall events, and evaluate both communication and sensing performance."
 
-Mention measurable outputs:
+Measured outputs:
 
-- BER for weak and strong users.
+- Weak and strong user BER.
 - Radar event frame count.
-- Maximum SNR in dB.
+- Maximum radar SNR in dB.
+- Range migration and velocity estimate.
 - Track stability and track loss.
-- Fall confidence and severity.
-- Detection probability and false alarm rate through Monte Carlo runs.
+- Fall confidence, severity, and basis.
+- Detection probability, false alarm rate, and missed detection rate.
 
-Sample prototype result from current code:
+Local verification from this repo:
 
-- A seeded single fall run detected a fall with `HIGH` severity and about `0.817` confidence.
-- In one 10-trial Monte Carlo sample, detection probability was `0.8`, false alarm rate was `0.0`, and missed detection rate was `0.2`.
-- Treat these as demonstration values; they vary with seed, number of trials, and channel conditions.
+- Seeded fall run with `rng_seed=7`: fall detected, `HIGH` severity, confidence about `0.817`, radar max SNR about `23.69 dB`, and track loss true.
+- One local 10-trial Monte Carlo run: detection probability `0.8`, false alarm rate `0.4`, missed detection rate `0.2`, mean weak BER about `0.163`, mean strong BER about `0.378`.
+- Treat these as demonstration values. They vary with random channel conditions and trial count.
+
+FL results from the report:
+
+- Five federated rounds.
+- Three sampled clients per round.
+- Total execution time: `122.47 seconds`.
+- Reported global accuracy moved from `96.43%` to `97.62%`.
+- The report notes a numerical symmetry between reported accuracy and loss and lists future refinement of local evaluation functions.
 
 ### Slide 9: Results And Analysis
 
 Say:
 
-"The system result has two parts: communication reliability and sensing reliability. Communication reliability is measured through BER after SIC. Sensing reliability is measured through radar features such as SNR, event frames, range migration, track stability, and track loss."
+"BioSense has two result tracks. The first is the implemented application path from ISAC signal to dashboard alert. The second is privacy-aware learning through the FL pipeline described in the report."
 
-Interpretation:
+ISAC result interpretation:
 
-- Lower BER means cleaner communication recovery.
-- Higher radar SNR and stable-to-lost track behavior support fall detection.
-- False alarms are controlled by requiring a stable track before declaring track loss.
+- Lower BER means better communication recovery after SIC.
+- Radar SNR and event frames show sensing evidence.
+- Stable track followed by track loss supports fall detection.
+- False alarms and missed detections depend on thresholds, random channels, and simulation assumptions.
 
-Current code demo points:
+Backend/frontend result interpretation:
 
-- `python/simulation/run_complete_pipeline.py` runs one complete ISAC pipeline.
-- `python/simulation/monte_carlo.py` repeats trials and computes detection statistics.
-- `python/api/app.py` exposes simulation, metrics, stream control, latest vitals, and alerts.
+- Backend supports registration, login, JWT, role middleware, MQTT subscription, alert persistence, and WebSocket streaming.
+- Frontend supports admin stream control, doctor monitoring, and patient vital views.
+
+FL result interpretation:
+
+- Local clients train without raw data sharing.
+- Aggregation produces a global model.
+- FedSense weights client updates using data quality, sensing reliability, and communication quality.
+- Confidence calibration separates low fluctuations from medium and high-risk events.
 
 ### Slide 10: Frontend And UI
 
 Say:
 
-"The UI is role-based. Admin manages the stream and reviews stored alerts. Doctors monitor live patient vitals and fall alerts. Patients see their own vitals and status."
+"The UI is role-based. Admin controls the stream and reviews stored alerts. Doctors monitor live vitals and fall alerts. Patients see their current vital status."
 
 Dashboard mapping:
 
-- Admin dashboard: starts/stops stream through Flask, fetches stored alerts from Go backend.
-- Doctor dashboard: receives live vitals and fall alerts through WebSocket.
-- Patient dashboard: displays live personal vitals and normal/abnormal status.
-- Login/signup: JWT-based role flow.
+- Admin dashboard: calls Flask stream start/stop/status and fetches stored alerts from the Go backend.
+- Doctor dashboard: consumes live WebSocket vitals and alerts.
+- Patient dashboard: displays patient-facing vital status from the live stream.
+- Login/signup: role-specific registration and JWT login.
 
-### Slide 11: Conclusion
+### Slide 11: Limitations
+
+Say this confidently:
+
+"The prototype is strong because it connects the full workflow, but it is still a prototype."
+
+Limitations:
+
+- Sensing and vitals are simulated, not hardware-generated.
+- WebSocket stream is not yet JWT-protected.
+- WebSocket origin policy currently allows all origins.
+- Patient dashboard does not yet bind logged-in users to real patient IDs.
+- Admin dashboard directly calls the Flask service on localhost.
+- PostgreSQL, MQTT broker, Flask, Go backend, and React frontend must run as separate services.
+- The report-described FL module is a standalone demo, not yet integrated into the main dashboard workflow.
+- Simulated encryption is not production-grade homomorphic encryption.
+- The system is not medically validated.
+
+### Slide 12: Conclusion
 
 Say:
 
-"BioSense demonstrates how ISAC can make IoMT more responsive. Instead of only sending vitals, the wireless signal also becomes a sensing source. The edge node extracts both communication and fall evidence, and the hospital application turns that into real-time alerts."
+"BioSense demonstrates how ISAC can make IoMT more responsive. The same waveform carries patient communication and provides fall-sensing evidence. Edge processing detects fall-like events, federated learning supports privacy-aware intelligence, and the hospital application turns events into real-time role-based alerts."
 
 End with:
 
-"Our current prototype validates the core workflow in software. The next step is adding the FL/HE privacy layer and moving from simulated sensors to hardware-assisted sensing."
+"The current prototype proves the software workflow. The next step is deeper FL-dashboard integration, verified secure aggregation or homomorphic encryption, JWT-protected streaming, patient identity binding, and hardware validation."
 
-### Slide 12: References
+### Slide 13: References
 
 Say:
 
-"The references cover three areas: privacy-preserving learning, leakage risks in FL, and NOMA-ISAC communication design. These papers justify why we combine FL/HE for privacy and NOMA/SIC for integrated sensing and communication."
+"The references support ISAC waveform sharing, IoMT edge architectures, latency-aware monitoring, security and privacy in healthcare software, federated learning for healthcare IoT, and future secure aggregation or homomorphic encryption."
 
-### Slide 13: Thank You
+### Slide 14: Thank You
 
 Close:
 
@@ -209,56 +273,106 @@ Close:
 
 `python/simulation/run_complete_pipeline.py`
 
-- Orchestrates one full experiment.
-- Creates strong and weak patients.
-- Generates bits.
-- Allocates power.
-- Superposes NOMA signal.
-- Applies channel, noise, and radar echo.
-- Sends received signal into the edge node.
+- Orchestrates one complete ISAC experiment.
+- Creates a strong patient at 5 m and a weak patient at 20 m.
+- Generates bits and BPSK symbols.
+- Allocates NOMA power.
+- Applies Rayleigh channels, AWGN, and radar echo.
+- Sends the received signal into `EdgeNode`.
 
 `python/core/communication`
 
-- `power_allocator.py`: allocates higher power to weaker channel users.
-- `noma.py`: combines patient signals into one transmitted waveform.
-- `channel.py`: simulates Rayleigh channel.
-- `awgn.py`: adds noise.
+- `power_allocator.py`: allocates more power to the weaker channel.
+- `noma.py`: superposes patient signals.
+- `channel.py`: simulates Rayleigh fading.
+- `awgn.py`: adds complex AWGN.
+- `modulation.py`: supports communication modulation helpers.
 
-`python/core/sic`
+`python/core/sic/weak_first_sic.py`
 
-- `weak_first_sic.py`: decodes weak user first, cancels it, then decodes strong user.
-- Produces BER and residual signal.
+- Decodes weak user first.
+- Reconstructs and cancels weak contribution.
+- Decodes strong user.
+- Returns BER and residual signal.
 
 `python/core/sensing`
 
-- `radar_processor.py`: matched-filter radar analysis, SNR, range, track-loss features.
-- `fall_detector.py`: final fall decision, severity, confidence.
-- `residual_analyzer.py`: residual envelope, spikes, energy.
+- `echo_model.py`: generates radar echo, clutter, range migration, and track attenuation.
+- `radar_processor.py`: matched-filter radar profiles, SNR, range, motion, and track-loss features.
+- `residual_analyzer.py`: residual envelope, threshold, spikes, and energy.
+- `fall_detector.py`: radar track-loss fall detection and residual fallback.
 
 `python/core/edge/edge_node.py`
 
-- Connects SIC, residual analysis, radar processing, fall detection, and alert generation.
-- This is the "brain" of the local edge layer.
+- Combines SIC, residual analysis, radar processing, fall detection, and alert generation.
+- This is the local edge decision loop.
 
 `python/simulation/stream_vitals.py`
 
-- Generates continuous multi-patient frames.
-- Produces vitals and sensing summaries.
-- Publishes data to MQTT topics when enabled.
+- Generates multi-patient vitals.
+- Selects possible falling patients using `STREAM_FALL_PROBABILITY`.
+- Runs the pipeline per stream frame.
+- Publishes vitals, sensing, and alerts to MQTT when enabled.
 
 `python/api/app.py`
 
 - Flask control API.
-- Important endpoints: `/simulate`, `/metrics`, `/stream/start`, `/stream/stop`, `/stream/status`, `/vitals/latest`, `/alerts`.
+- Key endpoints: `/health`, `/simulate`, `/metrics`, `/stream/start`, `/stream/stop`, `/stream/status`, `/vitals/latest`, `/stream/latest`, `/alerts`, `/residual/latest`.
+
+### Federated Learning And Privacy Layer
+
+Use the report as the source of truth for this layer.
+
+Report-described files/modules:
+
+- `server.py`: central Flower server using FedAvg and saving final global parameters.
+- `Client A.py`, `Client B.py`, `Client C.py`: decentralized FL clients.
+- `utils.py`: non-IID partitioning and simulated privacy helpers.
+- Prediction script: uses the saved global model for inference.
+
+FedSense explanation:
+
+- FedSense extends plain aggregation by considering client reliability.
+- Client weight uses:
+  - `DQk`: data quality.
+  - `SRk`: sensing reliability from ISAC confidence features.
+  - `CQk`: communication quality from channel/network conditions.
+- Composite weight:
+
+```text
+alpha_k = lambda_1 * DQk + lambda_2 * SRk + lambda_3 * CQk
+```
+
+- Global aggregation:
+
+```text
+w(t+1) = sum_k [(n_k * alpha_k) / sum_i(n_i * alpha_i)] * w_k(t)
+```
+
+Confidence scoring:
+
+- Signal Quality: SNR, completeness, drift.
+- Anomaly Severity: deviation from baseline, persistence, correlation.
+- Patient Context: history, medication risk, age risk.
+- Sigmoid calibration maps raw confidence to `0..1`.
+- Risk thresholds:
+  - `< 0.4`: low, discard or log.
+  - `0.4` to `0.75`: medium, notify nursing staff.
+  - `> 0.75`: high, trigger critical response.
+
+Homomorphic Encryption phrasing:
+
+"The report includes homomorphic encryption as the privacy mechanism direction. The current FL privacy helpers are demonstration-level and should be replaced with verified secure aggregation or production-grade HE before real deployment."
 
 ### Go Backend Layer
 
 `backend/main.go`
 
-- Starts the backend on port 8080.
-- Connects database.
+- Loads environment variables.
+- Connects PostgreSQL.
 - Starts MQTT subscriber.
 - Registers auth, dashboard, alert, and WebSocket routes.
+- Runs on port `8080`.
 
 `backend/services/mqtt_subscriber.go`
 
@@ -267,129 +381,163 @@ Close:
   - `hospital/patient/alerts`
   - `hospital/isac/residual`
 - Saves fall alerts to PostgreSQL.
-- Broadcasts vitals/residual/alerts to WebSocket clients.
+- Broadcasts vitals, residual/sensing, and alerts to WebSocket clients.
 
 `backend/services/broadcaster.go`
 
 - Maintains connected WebSocket clients.
-- Broadcasts incoming MQTT messages.
+- Broadcasts MQTT payloads to dashboards.
 
 `backend/handlers/auth.go`
 
 - Registers admin, doctor, and patient users.
+- Hashes passwords with bcrypt.
 - Logs users in and returns JWT.
 
 `backend/handlers/alerts.go`
 
-- Fetches stored fall alerts for admin/doctor views.
+- Returns stored fall alerts for admin and doctor views.
 
 ### Frontend Layer
 
 `frontend/src/App.jsx`
 
-- Defines routes and role-protected dashboards.
+- Defines public routes and role-protected dashboard routes.
 
 `frontend/src/hooks/useStream.js`
 
 - Connects to `ws://localhost:8080/ws/stream`.
-- Separates incoming messages into vitals, sensing, and alerts.
+- Separates vitals, sensing frames, and alerts.
 
 `frontend/src/pages/dashboards/AdminDashboard.jsx`
 
 - Starts/stops Python stream.
+- Checks stream status.
 - Fetches stored alerts from Go backend.
 
 `frontend/src/pages/dashboards/DoctorDashboard.jsx`
 
-- Shows live patients, vitals, and fall alerts.
+- Shows live patient vitals and fall alerts.
+- Lets doctor select a patient.
 
 `frontend/src/pages/dashboards/PatientDashboard.jsx`
 
-- Shows patient-facing vitals and status.
+- Shows patient-facing vitals and health status.
+- Currently uses the first received patient stream record rather than true account-to-patient binding.
 
 ## End-To-End Demo Script
 
-Use this order if you demo live:
+Use this order:
 
-1. Start the Python Flask API.
-2. Start MQTT broker if using MQTT streaming.
-3. Start Go backend.
-4. Start React frontend.
-5. Login as admin and start stream.
-6. Open doctor dashboard and show live vitals.
-7. Wait for or force a fall probability event.
-8. Show fall alert in doctor dashboard.
-9. Show stored alerts in admin dashboard.
+1. Start MQTT broker on `localhost:1883`.
+2. Start the Python Flask API:
 
-Explain during demo:
+```bash
+cd python
+python api/app.py
+```
 
-"The Python layer is generating the ISAC sensing/communication stream. MQTT carries vitals, sensing residuals, and alerts. The Go backend subscribes to those topics, saves alerts, and broadcasts live data to React through WebSocket."
+3. Start the Go backend:
 
-## Judging Panel Counter Questions And Answers
+```bash
+cd backend
+go run .
+```
 
-### Q1. What is ISAC, and why use it here?
+4. Start the React frontend:
 
-ISAC means Integrated Sensing and Communication. In BioSense, the same wireless infrastructure is used to transmit patient data and sense physical events. This reduces separate hardware dependence and supports faster edge decisions.
+```bash
+cd frontend
+npm run dev
+```
 
-### Q2. Why NOMA instead of ordinary orthogonal access?
+5. Register or login as admin.
+6. Start the stream from the admin dashboard.
+7. Open doctor dashboard and show live patient vitals.
+8. Wait for a fall event or increase fall probability through the Flask API if needed.
+9. Show fall alert in the doctor dashboard.
+10. Show stored alerts in the admin dashboard.
 
-NOMA allows multiple users to share the same time/frequency resource by assigning different power levels. In a hospital with many IoMT devices, this can improve spectral efficiency. We then use SIC to separate the overlapping user signals.
+Demo explanation:
 
-### Q3. Why decode the weak user first?
+"The Python layer generates the ISAC communication/sensing stream. MQTT carries vitals, sensing frames, and fall alerts. The Go backend subscribes, stores alerts, and broadcasts live data. React dashboards render the hospital workflow."
 
-The weaker/farther user receives higher power in power-domain NOMA. Because its signal is stronger in the composite waveform, the receiver decodes and subtracts it first, then decodes the strong/near user.
+## Judge Questions And Answers
 
-### Q4. What is the residual signal, and why is it useful?
+### Q1. What is ISAC?
 
-After SIC cancels reconstructed communication signals, what remains is residual energy. In our prototype, that residual contains sensing evidence such as radar echo behavior, so it is analyzed for spikes, SNR, range migration, and track loss.
+ISAC means Integrated Sensing and Communication. In BioSense, one simulated waveform carries patient communication data and also supports radar-style sensing evidence for fall detection.
+
+### Q2. Why use NOMA?
+
+NOMA allows multiple patient devices to share the same resource block by assigning different power levels. It improves spectral efficiency for dense IoMT settings.
+
+### Q3. Why weak-first SIC?
+
+The farther or weaker user receives more power in power-domain NOMA. Because that signal is dominant in the mixed waveform, the receiver decodes and subtracts it first, then decodes the stronger/nearer user.
+
+### Q4. What is the residual signal?
+
+The residual is what remains after SIC cancels reconstructed communication signals. BioSense analyzes that residual for sensing evidence, including radar SNR, range behavior, and track loss.
 
 ### Q5. How is a fall detected?
 
-The stronger implemented path is radar track-loss detection. The system first checks whether a radar track is stable at the expected patient range. If that track later drops for enough frames, the fall detector marks a fall and assigns severity/confidence.
+The main implemented path is radar track-loss detection. The processor first establishes a stable target track near the patient range. If that track later drops for enough frames, the fall detector marks a fall and assigns severity/confidence.
 
 ### Q6. How do you reduce false alarms?
 
-We do not declare a fall from one noisy spike alone. The radar path requires track stability first, then sustained track loss. The system also uses thresholds like SNR, event frame count, and track-loss frame count.
+The system does not rely on a single spike. It uses thresholded radar features, stable-track requirements, track-loss frame counts, and confidence scoring. The FL confidence mechanism also uses calibrated low, medium, and high-risk bands.
 
-### Q7. Is federated learning implemented?
+### Q7. Is Federated Learning implemented?
 
-In the current codebase, the implemented prototype focuses on ISAC/NOMA simulation, edge fall detection, streaming, backend, and dashboards. Federated learning is part of the proposed architecture and future extension for privacy-preserving anomaly models.
+According to the project report, yes: it is demonstrated as a separate FL module using Flower, three clients, non-IID data partitions, FedAvg/FedSense aggregation, model saving, and prediction. It is not yet integrated into the main dashboard workflow.
 
-### Q8. Is homomorphic encryption implemented?
+### Q8. What is FedSense?
 
-Not in the present codebase. It is included in the architecture and literature direction. The current implemented security is role-based access with JWT and database-backed users. Homomorphic encryption would be added to protect FL model updates.
+FedSense is the sensing-aware aggregation strategy described in the report. It weights client updates using data quality, sensing reliability from the ISAC layer, and communication quality, instead of treating every client update equally.
 
-### Q9. What data is real and what is simulated?
+### Q9. What role does Homomorphic Encryption play?
 
-The current system uses simulated patient vitals, wireless channels, NOMA signals, radar echo, and fall events. The architecture is designed so future hardware such as ESP32, Raspberry Pi, or SDR can replace the simulated sensor layer.
+HE is the privacy-hardening direction for protecting FL model updates. The report treats privacy helpers/encryption as demonstration-level and states that production deployment should replace them with verified secure aggregation or real homomorphic encryption.
 
-### Q10. Why use both Python and Go?
+### Q10. What data is real and what is simulated?
 
-Python is better suited for simulation, signal processing, and data science workflows. Go is used for backend services because it is fast, concurrent, and clean for APIs, MQTT subscribers, WebSocket broadcasting, and database integration.
+The current ISAC signals, vitals, wireless channels, radar echoes, and fall events are simulated. The system architecture is designed so future sensors, ESP32/Raspberry Pi gateways, Jetson Nano, or SDR hardware can replace the simulated layer.
 
-### Q11. What are the main limitations?
+### Q11. Why Python and Go?
 
-The main limitations are that the sensing is simulated, FL/HE are architectural rather than fully implemented, and detection performance depends on channel assumptions, thresholds, and trial conditions. Hardware validation is the next important step.
+Python is suited for simulation, signal processing, radar analysis, and ML/FL experimentation. Go is suited for concurrent backend services, MQTT ingestion, WebSocket broadcasting, authentication, and database persistence.
 
-### Q12. What is the unique value of your project?
+### Q12. What are the main limitations?
 
-The value is the full pipeline: not just a dashboard and not just an algorithm. BioSense connects ISAC-based sensing, NOMA communication, edge fall detection, backend alert persistence, and real-time hospital dashboards.
+The main limitations are simulated sensing, standalone FL rather than dashboard-integrated FL, non-production-grade simulated encryption, unauthenticated WebSocket streaming, no patient-account binding, and no medical validation yet.
 
-## Best Phrases To Use In Front Of Judges
+### Q13. What is unique about BioSense?
 
-- "Implemented prototype" for the current code.
-- "Proposed privacy layer" for FL and homomorphic encryption.
-- "Software-simulated ISAC environment" for the current experiment.
-- "Edge decision loop" for SIC, radar processing, and fall detection.
-- "Role-based hospital workflow" for admin, doctor, and patient dashboards.
+BioSense connects the whole path: ISAC/NOMA signal simulation, SIC residual sensing, radar track-loss fall detection, privacy-aware FL direction, MQTT transport, backend persistence, and live role-based hospital dashboards.
+
+## Best Phrases To Use
+
+- "Implemented end-to-end application path."
+- "Software-simulated ISAC environment."
+- "Shared-waveform communication and sensing."
+- "Edge decision loop."
+- "Radar track-loss fall evidence."
+- "Federated Learning demo module."
+- "FedSense sensing-aware aggregation."
+- "Demonstration-level privacy helpers, with production-grade HE as future hardening."
+- "Role-based hospital workflow."
 
 ## Avoid Saying
 
-- Do not say FL and homomorphic encryption are fully implemented unless you add that code later.
-- Do not claim medical-grade accuracy.
-- Do not claim hardware validation yet.
-- Do not say the system diagnoses disease; it monitors vitals and detects fall-like events in the prototype.
+- Do not claim medical-grade validation.
+- Do not claim real patient data was used.
+- Do not claim real hardware sensing is already deployed.
+- Do not say WebSocket streaming is JWT-protected yet.
+- Do not say current simulated encryption is production-grade homomorphic encryption.
+- Do not say the patient dashboard already binds logged-in accounts to exact patient IDs.
+- Do not describe the system as diagnosing disease; it monitors vitals and detects fall-like events in simulation.
 
-## Short Final Summary For Viva
+## Short Viva Summary
 
-"BioSense is a software prototype for ISAC-enabled healthcare monitoring. The Python layer simulates multi-patient NOMA communication and radar sensing, the edge node uses SIC and radar residual analysis to detect falls, MQTT and the Go backend move events into the hospital system, PostgreSQL stores alerts, and React dashboards show role-based live monitoring. The current implementation proves the end-to-end workflow, while federated learning, homomorphic encryption, and hardware sensing are the next extensions."
+"BioSense is a software prototype for smart and secure healthcare monitoring. The Python layer simulates ISAC/NOMA communication, weak-first SIC, radar residual sensing, fall detection, vitals streaming, and metrics. MQTT and the Go backend move events into PostgreSQL and WebSocket streams. React dashboards provide admin, doctor, and patient workflows. The report also presents a Flower-based FL module with FedAvg/FedSense aggregation and privacy helpers, while production-grade homomorphic encryption or secure aggregation remains a future hardening step. The project demonstrates the full path from simulated patient signal to live hospital alert."
