@@ -484,35 +484,67 @@ The residual is what remains after SIC cancels reconstructed communication signa
 
 The main implemented path is radar track-loss detection. The processor first establishes a stable target track near the patient range. If that track later drops for enough frames, the fall detector marks a fall and assigns severity/confidence.
 
-### Q6. How do you reduce false alarms?
+### Q6. How is object detection achieved? When you use the term radar, does it imply object detection?
+
+In this prototype, "radar" means radar-style signal processing, not camera-style object detection. The system does not classify objects with a bounding box or image model. Instead, it transmits a known ISAC waveform and compares the received residual signal against that reference using matched-filter processing. Peaks in the range profile indicate reflected energy from a target-like object at an estimated distance.
+
+For fall sensing, the target is the simulated patient track. The radar processor estimates range bins, SNR, range migration, velocity-like motion, track stability, and track loss. So the "object detection" is achieved as signal-level target presence and tracking: the system detects that a reflecting target exists near the expected patient range, follows its track, and identifies a fall-like event when that stable track disappears or weakens sharply.
+
+Judge-safe phrasing:
+
+"We are not doing visual object detection. We are doing radar-style target detection and tracking from the residual ISAC waveform. The object is represented by reflected signal energy at a range bin, not by an image bounding box."
+
+### Q7. How do you reduce false alarms?
 
 The system does not rely on a single spike. It uses thresholded radar features, stable-track requirements, track-loss frame counts, and confidence scoring. The FL confidence mechanism also uses calibrated low, medium, and high-risk bands.
 
-### Q7. Is Federated Learning implemented?
+### Q8. Is Federated Learning implemented?
 
 According to the project report, yes: it is demonstrated as a separate FL module using Flower, three clients, non-IID data partitions, FedAvg/FedSense aggregation, model saving, and prediction. It is not yet integrated into the main dashboard workflow.
 
-### Q8. What is FedSense?
+### Q9. What is FedSense?
 
 FedSense is the sensing-aware aggregation strategy described in the report. It weights client updates using data quality, sensing reliability from the ISAC layer, and communication quality, instead of treating every client update equally.
 
-### Q9. What role does Homomorphic Encryption play?
+### Q10. How is the FL module assigning or determining fall confidence?
+
+The report describes fall confidence as a calibrated score built from ISAC/anomaly evidence rather than from raw vitals alone. The confidence mechanism has three pillars:
+
+- Signal Quality: whether the sensing signal is reliable, using factors such as SNR, missing samples, completeness, and drift.
+- Anomaly Severity: how far the current event deviates from normal behavior, including deviation from baseline, duration, and correlation across metrics.
+- Patient Context: risk modifiers such as history, age, and medication-related risk in the report's architecture.
+
+These sub-scores are combined into a raw confidence value:
+
+```text
+C_raw = wA * SA + wB * SB + wC * SC
+```
+
+Then sigmoid calibration maps the raw score into a bounded `0..1` confidence:
+
+```text
+C = sigmoid(gain * (C_raw - 0.5) - theta)
+```
+
+That calibrated confidence is assigned to alert bands: below `0.4` is low, `0.4` to `0.75` is medium, and above `0.75` is high. In FedSense, the sensing reliability part of this confidence also influences how much a client update should affect the global model. So confidence is both an alert decision signal and a reliability signal for FL aggregation.
+
+### Q11. What role does Homomorphic Encryption play?
 
 HE is the privacy-hardening direction for protecting FL model updates. The report treats privacy helpers/encryption as demonstration-level and states that production deployment should replace them with verified secure aggregation or real homomorphic encryption.
 
-### Q10. What data is real and what is simulated?
+### Q12. What data is real and what is simulated?
 
 The current ISAC signals, vitals, wireless channels, radar echoes, and fall events are simulated. The system architecture is designed so future sensors, ESP32/Raspberry Pi gateways, Jetson Nano, or SDR hardware can replace the simulated layer.
 
-### Q11. Why Python and Go?
+### Q13. Why Python and Go?
 
 Python is suited for simulation, signal processing, radar analysis, and ML/FL experimentation. Go is suited for concurrent backend services, MQTT ingestion, WebSocket broadcasting, authentication, and database persistence.
 
-### Q12. What are the main limitations?
+### Q14. What are the main limitations?
 
 The main limitations are simulated sensing, standalone FL rather than dashboard-integrated FL, non-production-grade simulated encryption, unauthenticated WebSocket streaming, no patient-account binding, and no medical validation yet.
 
-### Q13. What is unique about BioSense?
+### Q15. What is unique about BioSense?
 
 BioSense connects the whole path: ISAC/NOMA signal simulation, SIC residual sensing, radar track-loss fall detection, privacy-aware FL direction, MQTT transport, backend persistence, and live role-based hospital dashboards.
 
